@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className={`${manrope.className} antialiased`}>
         <SidebarProvider>
           <AppSidebar />
-          <main>
+          <main className="p-5">
             {children}
           </main>
         </SidebarProvider>
