@@ -22,13 +22,13 @@ const Auth = () => {
       </div>
 
       <div className="text-center space-x-5">
-        <Link href={"/sign-up"}>
+        <Link href={"/auth/sign-up"}>
           <Button className="bg-white hover:bg-white text-primary h-[45px] w-[150px] rounded-3xl text-lg font-bold">
             Sign Up
           </Button>
         </Link>
 
-        <Link href={"/sign-in"}>
+        <Link href={"/auth/sign-in"}>
           <Button className="h-[45px] w-[150px] rounded-3xl text-lg font-bold">
             Sign In
           </Button>

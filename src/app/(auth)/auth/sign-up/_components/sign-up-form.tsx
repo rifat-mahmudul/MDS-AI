@@ -180,7 +180,7 @@ const SignUpForm = () => {
             control={form.control}
             name="acceptTerms"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormItem className="flex flex-row items-start space-x-2 space-y-0">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -207,8 +207,8 @@ const SignUpForm = () => {
 
           <div>
             <p>
-              Already have an account ? Please{" "}
-              <Link href={'/sign-in'} className="text-primary font-bold underline">
+              Already have an account ?{" "}
+              <Link href={'/auth/sign-in'} className="text-primary font-bold underline">
                 <span>Sign In</span>.
               </Link>
             </p>
