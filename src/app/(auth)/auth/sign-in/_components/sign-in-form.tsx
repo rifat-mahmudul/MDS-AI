@@ -125,7 +125,7 @@ const SignInForm = () => {
               )}
             />
 
-            <Link href={"/forgot-password"} className="hover:underline">
+            <Link href={"/auth/forgot-password"} className="hover:underline">
               <p className="text-sm font-medium text-primary">
                 Forgot Password?
               </p>
