@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import React from "react";
 import SearchFilter from "./_components/search-filter";
+import SessionTable from "../_components/session-table";
 
 const page = () => {
   return (
@@ -20,6 +21,10 @@ const page = () => {
 
       <div>
         <SearchFilter />
+      </div>
+
+      <div>
+        <SessionTable />
       </div>
     </div>
   );
