@@ -13,37 +13,60 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email(),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
-
-  rememberMe: z
-    .boolean()
-    .refine((val) => val === true)
-    .optional(),
 });
 
 type FormType = z.infer<typeof formSchema>;
 
 const SignInForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     mode: "onBlur",
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
-  function onSubmit(values: FormType) {
-    console.log(values);
+  const handleSignIn = async (payload: FormType) => {
+    try {
+      setIsLoading(true);
+
+      const res = await signIn("credentials", {
+        email: payload.email,
+        password: payload.password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.success("Login successful!");
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.log(`login error : ${error}`);
+      toast.error("Something went wrong!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  async function onSubmit(payload: FormType) {
+    await handleSignIn(payload);
   }
 
   return (
@@ -104,27 +127,7 @@ const SignInForm = () => {
             )}
           />
 
-          <div className="flex items-center justify-between">
-            <FormField
-              control={form.control}
-              name="rememberMe"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-2 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="border border-black data-[state=checked]:bg-black data-[state=checked]:text-white"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel className=" text-primary">Remember me</FormLabel>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
+          <div className="flex items-center justify-end">
             <Link href={"/auth/forgot-password"} className="hover:underline">
               <p className="text-sm font-medium text-primary">
                 Forgot Password?
@@ -132,8 +135,22 @@ const SignInForm = () => {
             </Link>
           </div>
 
-          <Button type="submit" className="w-full h-[50px]">
-            Sign In
+          <Button
+            disabled={isLoading}
+            type="submit"
+            className="w-full h-[50px] disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <span className="flex items-center gap-1">
+                <span>
+                  <Spinner />
+                </span>
+
+                <span>Sign In</span>
+              </span>
+            ) : (
+              `Sign In`
+            )}
           </Button>
 
           <div>
