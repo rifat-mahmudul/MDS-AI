@@ -1,4 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@/components/shared/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import React from "react";
 
@@ -7,7 +7,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <div>
       <SidebarProvider>
         <AppSidebar />
-        <main className="p-5">{children}</main>
+        <main className="p-5 bg-[#f7f9fa] w-full">{children}</main>
       </SidebarProvider>
     </div>
   );
