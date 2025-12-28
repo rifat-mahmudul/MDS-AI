@@ -21,6 +21,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 const items = [
   {
@@ -75,7 +76,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
 
           <SidebarGroupContent>
-            <SidebarMenu className="flex flex-col justify-between min-h-[calc(100vh-180px)]" >
+            <SidebarMenu className="flex flex-col justify-between min-h-[calc(100vh-180px)]">
               <div className="space-y-3">
                 {items.map((item) => {
                   const isActive = pathName === item?.url;
@@ -101,7 +102,10 @@ export function AppSidebar() {
               </div>
 
               <div>
-                <button className="flex items-center gap-2 font-bold text-red-500 bg-[#ffffff10] h-[50px] w-full px-4 rounded-lg hover:bg-red-500 hover:text-white">
+                <button
+                  onClick={() => signOut({ callbackUrl: "/auth/sign-in" })}
+                  className="flex items-center gap-2 font-bold text-red-500 bg-[#ffffff10] h-[50px] w-full px-4 rounded-lg hover:bg-red-500 hover:text-white"
+                >
                   <span>
                     <LogOut className="h-5 w-5" />
                   </span>{" "}
