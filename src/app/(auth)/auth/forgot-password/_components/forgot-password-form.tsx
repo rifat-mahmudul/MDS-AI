@@ -118,7 +118,7 @@ const ForgotPasswordForm = () => {
             )}
           />
 
-          <Button type="submit" className="w-full h-[50px]">
+          <Button disabled={isPending} type="submit" className="w-full h-[50px] disabled:cursor-not-allowed">
             {isPending ? (
               <span className="flex items-center gap-1">
                 <span>

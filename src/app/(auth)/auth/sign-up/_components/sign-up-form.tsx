@@ -16,6 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z
   .object({
@@ -57,8 +60,39 @@ const SignUpForm = () => {
     },
   });
 
-  function onSubmit(values: FormType) {
-    console.log(values);
+  const { mutateAsync, isPending } = useMutation({
+    mutationKey: ["sign-up"],
+    mutationFn: async (submitData: FormType) => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(submitData),
+        }
+      );
+
+      return await res.json();
+    },
+
+    onSuccess: async (data) => {
+      toast.success(data?.message);
+      window.location.href = "/auth/sign-in";
+    },
+
+    onError: async (error) => {
+      toast.error(error?.message);
+    },
+  });
+
+  async function onSubmit(values: FormType) {
+    try {
+      await mutateAsync(values);
+    } catch (error) {
+      console.log(`registration error : ${error}`);
+    }
   }
 
   return (
@@ -201,14 +235,31 @@ const SignUpForm = () => {
             )}
           />
 
-          <Button type="submit" className="w-full h-[50px]">
-            Submit
+          <Button
+            disabled={isPending}
+            type="submit"
+            className="w-full h-[50px] disabled:cursor-not-allowed"
+          >
+            {isPending ? (
+              <span className="flex items-center gap-1">
+                <span>
+                  <Spinner />
+                </span>
+
+                <span>Submitting</span>
+              </span>
+            ) : (
+              `Submit`
+            )}
           </Button>
 
           <div>
             <p>
               Already have an account ?{" "}
-              <Link href={'/auth/sign-in'} className="text-primary font-bold underline">
+              <Link
+                href={"/auth/sign-in"}
+                className="text-primary font-bold underline"
+              >
                 <span>Sign In</span>.
               </Link>
             </p>
