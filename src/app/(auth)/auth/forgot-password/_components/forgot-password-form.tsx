@@ -62,7 +62,7 @@ const ForgotPasswordForm = () => {
     onSuccess: async (data, variables) => {
       toast.success(data?.message);
       const encodedEmail = encodeURIComponent(variables.email);
-      router.push(`/otp?email=${encodedEmail}`);
+      router.push(`/auth/enter-otp?email=${encodedEmail}`);
     },
 
     onError: async (error) => {
