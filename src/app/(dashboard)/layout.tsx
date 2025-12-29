@@ -7,7 +7,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
     <div>
       <SidebarProvider>
         <AppSidebar />
-        <main className="p-5 bg-[#f7f9fa] w-full">{children}</main>
+        <div className="p-5 bg-[#f7f9fa] w-full">{children}</div>
       </SidebarProvider>
     </div>
   );
