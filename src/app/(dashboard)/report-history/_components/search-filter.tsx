@@ -12,15 +12,15 @@ import {
 import { useSearchFilter } from "./zustand/useSearchFilter";
 
 const SearchFilter = () => {
-  const { search, setSearch } = useSearchFilter();
+  const { searchTerm, setSearchTerm } = useSearchFilter();
 
   return (
     <div className="flex items-center justify-between">
       <SearchInput
         className="w-[400px] h-[50px] focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none bg-[#eaeaea]"
         placeholder="Search by Session ID or Date..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
       />
 
       <div className="flex items-center gap-5">

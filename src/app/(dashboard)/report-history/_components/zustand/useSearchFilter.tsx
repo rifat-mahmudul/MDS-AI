@@ -1,15 +1,15 @@
 import { create } from "zustand";
 
 interface ISearchFilter {
-  search: string;
-  setSearch: (value: string) => void;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
 }
 
 const initialStates = {
-  search: "",
+  searchTerm: "",
 };
 
 export const useSearchFilter = create<ISearchFilter>((set) => ({
   ...initialStates,
-  setSearch: (value: string) => set({ search: value }),
+  setSearchTerm: (value: string) => set({ searchTerm: value }),
 }));

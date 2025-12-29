@@ -56,13 +56,13 @@ const SessionTable = () => {
   const session = useSession();
   const token = session?.data?.user?.accessToken;
   const status = session?.status;
-  const { search } = useSearchFilter();
+  const { searchTerm } = useSearchFilter();
 
   const { data, isLoading, error } = useQuery<ApiResponse>({
-    queryKey: ["session-data", currentPage, search],
+    queryKey: ["session-data", currentPage, searchTerm],
     queryFn: async () => {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/session?search=${search}&page=${currentPage}&limit=${itemsPerPage}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/session?searchTerm=${searchTerm}&page=${currentPage}&limit=${itemsPerPage}`,
         {
           method: "GET",
           headers: {
