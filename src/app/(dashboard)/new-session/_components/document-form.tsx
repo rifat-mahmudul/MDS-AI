@@ -25,13 +25,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import SessionSuccessModal from "./session-success-modal";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  files: z
-    .array(z.any())
-    .min(1, "Please upload at least one document or paste raw text."),
-  rawText: z.string().optional(),
+  notes: z.string().optional(),
 });
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const ACCEPTED_FILE_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 type FormType = z.infer<typeof formSchema>;
 
@@ -40,11 +49,11 @@ interface UploadedFile {
   name: string;
   size: string;
   type: string;
+  file: File;
 }
 
 export function DocumentForm() {
   const [files, setFiles] = React.useState<UploadedFile[]>([]);
-  const [isProcessing, setIsProcessing] = React.useState(false);
   const [showRawText, setShowRawText] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const session = useSession();
@@ -55,23 +64,34 @@ export function DocumentForm() {
   const form = useForm<FormType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      files: files,
-      rawText: "",
+      notes: "",
     },
   });
 
-  React.useEffect(() => {
-    form.setValue("files", files);
-  }, [files, form]);
-
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files).map((file) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        size: formatBytes(file.size),
-        type: file.type,
-      }));
+      const newFiles: UploadedFile[] = [];
+
+      Array.from(e.target.files).forEach((file) => {
+        if (file.size > MAX_FILE_SIZE) {
+          toast.error(`${file.name} is too large. Max size is 20MB`);
+          return;
+        }
+
+        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+          toast.error(`${file.name} has unsupported file type`);
+          return;
+        }
+
+        newFiles.push({
+          id: Math.random().toString(36).substr(2, 9),
+          name: file.name,
+          size: formatBytes(file.size),
+          type: file.type,
+          file: file,
+        });
+      });
+
       setFiles((prev) => [...prev, ...newFiles]);
     }
   };
@@ -80,39 +100,56 @@ export function DocumentForm() {
     setFiles((prev) => prev.filter((f) => f.id !== id));
   };
 
-  const {} = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationKey: ["new-session"],
-    mutationFn: async (payload: FormType) => {
+    mutationFn: async (formData: FormData) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/session`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(payload),
+          body: formData,
         }
       );
 
       if (!res.ok) {
-        throw new Error("Something went wrong!");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Something went wrong!");
       }
 
       return await res.json();
     },
 
-    onSuccess: (data) => {},
+    onSuccess: (data) => {
+      setIsSuccess(true);
+      setId(data?.data?._id);
+      setFiles([]);
+      form.reset();
+      setShowRawText(false);
+    },
+
+    onError: (error) => {
+      toast.error(error.message);
+    },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsProcessing(true);
-    console.log("[v0] Processing with values:", values);
-    setTimeout(() => {
-      setIsProcessing(false);
-      form.reset();
-      setFiles([]);
-    }, 3000);
+  async function onSubmit(values: FormType) {
+    try {
+      const formData = new FormData();
+      files.forEach((fileObj) => {
+        formData.append("uploads", fileObj.file);
+      });
+
+      if (values.notes?.trim()) {
+        formData.append("notes", values.notes);
+      }
+
+      await mutateAsync(formData);
+    } catch (error) {
+      console.error("Error from upload session:", error);
+    }
   }
 
   return (
@@ -157,36 +194,40 @@ export function DocumentForm() {
                   className="hidden"
                   multiple
                   onChange={onFileChange}
-                  accept=".pdf,.docx,.txt,.jpg,.jpeg,.png"
+                  accept=".pdf,.docx,.txt,.jpg,.jpeg,.png,.webp"
                 />
               </div>
             </div>
           </div>
 
           {/* OR Divider */}
-          <div className="relative flex items-center px-4">
-            <div className="flex-grow border-t border-slate-200"></div>
-            <span className="flex-shrink mx-6 text-sm font-medium text-slate-500 uppercase tracking-widest">
-              OR
-            </span>
-            <div className="flex-grow border-t border-slate-200"></div>
-          </div>
+          {files.length > 0 && (
+            <div className="relative flex items-center px-4">
+              <div className="flex-grow border-t border-slate-200"></div>
+              <span className="flex-shrink mx-6 text-sm font-medium text-slate-500 uppercase tracking-widest">
+                OR
+              </span>
+              <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+          )}
 
           {/* Uploaded Files Section */}
           <div className="space-y-5 px-1">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-800">
-                Uploaded Content
+                Uploaded Content {files.length > 0 && `(${files.length})`}
               </h2>
-              <FormField
-                control={form.control}
-                name="files"
-                render={() => (
-                  <FormItem>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {files.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFiles([])}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  Clear All
+                </Button>
+              )}
             </div>
             <div className="space-y-3">
               {files.length > 0 ? (
@@ -208,7 +249,7 @@ export function DocumentForm() {
                           {file.name}
                         </span>
                         <span className="text-xs text-slate-400 font-medium">
-                          {file.size}
+                          {file.size} • {file.type}
                         </span>
                       </div>
                     </div>
@@ -225,10 +266,13 @@ export function DocumentForm() {
                   </div>
                 ))
               ) : (
-                <div>
-                  <h1 className="mb-4 opacity-50 font-medium">
+                <div className="text-center py-8">
+                  <p className="mb-4 opacity-50 font-medium">
                     No Files Uploaded
-                  </h1>
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    Upload files or paste raw text below
+                  </p>
                 </div>
               )}
 
@@ -236,7 +280,7 @@ export function DocumentForm() {
               {showRawText ? (
                 <FormField
                   control={form.control}
-                  name="rawText"
+                  name="notes"
                   render={({ field }) => (
                     <FormItem className="animate-in fade-in slide-in-from-top-2 duration-300">
                       <FormControl>
@@ -250,7 +294,7 @@ export function DocumentForm() {
                             type="button"
                             onClick={() => {
                               setShowRawText(false);
-                              form.setValue("rawText", "");
+                              form.setValue("notes", "");
                             }}
                             className="absolute top-2 right-2 p-1 text-slate-400 hover:text-slate-600"
                           >
@@ -283,16 +327,26 @@ export function DocumentForm() {
           <div className="space-y-6 pt-4">
             <Button
               type="submit"
-              className="w-full h-[50px] text-lg font-bold bg-[#1e293b] hover:bg-[#0f172a] text-white rounded-xl shadow-lg transition-all active:scale-[0.98]"
-              disabled={isProcessing}
+              className="w-full h-[50px] text-lg font-bold bg-[#1e293b] hover:bg-[#0f172a] text-white rounded-xl shadow-lg transition-all disabled:cursor-not-allowed active:scale-[0.98]"
+              disabled={
+                isPending ||
+                (files.length === 0 && !form.watch("notes")?.trim())
+              }
             >
-              {isProcessing ? "Processing..." : "Process Documents"}
+              {isPending ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "Process Documents"
+              )}
             </Button>
 
             <div
               className={cn(
                 "flex flex-col items-center justify-center space-y-4 transition-all duration-500",
-                isProcessing
+                isPending
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-4 pointer-events-none"
               )}
@@ -312,6 +366,7 @@ export function DocumentForm() {
         <SessionSuccessModal
           isOpen={isSuccess}
           onClose={() => setIsSuccess(false)}
+          id={id}
         />
       )}
     </div>
