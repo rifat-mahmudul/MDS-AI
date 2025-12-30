@@ -57,10 +57,10 @@ const SessionTable = () => {
   const session = useSession();
   const token = session?.data?.user?.accessToken;
   const status = session?.status;
-  const { searchTerm, riskLevel } = useSearchFilter();
+  const { searchTerm, riskLevel, dateRange } = useSearchFilter();
 
   const { data, isLoading, error, isFetching } = useQuery<ApiResponse>({
-    queryKey: ["session-data", currentPage, searchTerm, riskLevel],
+    queryKey: ["session-data", currentPage, searchTerm, riskLevel, dateRange],
     queryFn: async () => {
       const params = new URLSearchParams({
         searchTerm,
@@ -70,6 +70,10 @@ const SessionTable = () => {
 
       if (riskLevel) {
         params.append("riskLevel", riskLevel);
+      }
+
+      if (dateRange && dateRange !== "all") {
+        params.append("dateRange", dateRange);
       }
 
       const res = await fetch(

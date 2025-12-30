@@ -11,9 +11,25 @@ import {
 } from "@/components/ui/select";
 import { useSearchFilter } from "./zustand/useSearchFilter";
 
+const dateRangeOptions = [
+  { value: "today", label: "Today" },
+  { value: "3-days", label: "Last 3 days" },
+  { value: "7-days", label: "Last 7 days" },
+  { value: "2-weeks", label: "Last 2 weeks" },
+  { value: "1-month", label: "Last 1 month" },
+  { value: "3-months", label: "Last 3 months" },
+  { value: "all", label: "All Time" },
+];
+
 const SearchFilter = () => {
-  const { searchTerm, riskLevel, setSearchTerm, setRiskLevel } =
-    useSearchFilter();
+  const {
+    searchTerm,
+    riskLevel,
+    setSearchTerm,
+    setRiskLevel,
+    dateRange,
+    setDateRange,
+  } = useSearchFilter();
 
   return (
     <div className="flex items-center justify-between">
@@ -51,27 +67,25 @@ const SearchFilter = () => {
           </SelectContent>
         </Select>
 
-        <Select>
+        <Select
+          value={dateRange}
+          onValueChange={setDateRange}
+          defaultValue="all"
+        >
           <SelectTrigger className="w-[180px] bg-[#eaeaea] focus:ring-0 h-[50px]">
-            <SelectValue placeholder="Today" />
+            <SelectValue placeholder="All Time" />
           </SelectTrigger>
           <SelectContent className="bg-[#eaeaea]">
             <SelectGroup>
-              <SelectItem value="today" className="cursor-pointer">
-                Today
-              </SelectItem>
-              <SelectItem value="3-days" className="cursor-pointer">
-                Last 3 days
-              </SelectItem>
-              <SelectItem value="7-day" className="cursor-pointer">
-                7 days
-              </SelectItem>
-              <SelectItem value="2-weeks" className="cursor-pointer">
-                2 weeks
-              </SelectItem>
-              <SelectItem value="1-month" className="cursor-pointer">
-                1 month
-              </SelectItem>
+              {dateRangeOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="cursor-pointer"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectGroup>
           </SelectContent>
         </Select>
