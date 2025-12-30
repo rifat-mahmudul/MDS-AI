@@ -10,12 +10,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 import { useSearchFilter } from "../report-history/_components/zustand/useSearchFilter";
 import Link from "next/link";
 import NoSessions from "./no-sessions";
+import { DeleteSession } from "./delete-session";
 
 // Session data type interface
 interface SessionData {
@@ -56,10 +57,10 @@ const SessionTable = () => {
   const session = useSession();
   const token = session?.data?.user?.accessToken;
   const status = session?.status;
-  const { searchTerm, riskLevel } = useSearchFilter();
+  const { searchTerm, riskLevel, dateRange } = useSearchFilter();
 
   const { data, isLoading, error, isFetching } = useQuery<ApiResponse>({
-    queryKey: ["session-data", currentPage, searchTerm, riskLevel],
+    queryKey: ["session-data", currentPage, searchTerm, riskLevel, dateRange],
     queryFn: async () => {
       const params = new URLSearchParams({
         searchTerm,
@@ -69,6 +70,10 @@ const SessionTable = () => {
 
       if (riskLevel) {
         params.append("riskLevel", riskLevel);
+      }
+
+      if (dateRange && dateRange !== "all") {
+        params.append("dateRange", dateRange);
       }
 
       const res = await fetch(
@@ -269,14 +274,7 @@ const SessionTable = () => {
                     </Link>
                   </div>
                   <div>
-                    <button
-                      onClick={() => {
-                        console.log("Download session:", session._id);
-                      }}
-                      className="hover:opacity-80 transition-opacity"
-                    >
-                      <Download className="h-5 w-5 text-primary" />
-                    </button>
+                    <DeleteSession id={session?._id} />
                   </div>
                 </TableCell>
               </TableRow>
