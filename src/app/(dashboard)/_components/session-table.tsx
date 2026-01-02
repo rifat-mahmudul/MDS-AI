@@ -115,13 +115,6 @@ const SessionTable = () => {
     return text.slice(0, maxLength) + "...";
   };
 
-  const getScore = (session: SessionData) => {
-    if (session.aiRaw?.scores?.documentation_quality !== undefined) {
-      return session.aiRaw.scores.documentation_quality;
-    }
-    return session.score;
-  };
-
   const getRiskLevelStyles = (riskLevel: string) => {
     switch (riskLevel?.toLowerCase()) {
       case "high":
@@ -256,7 +249,7 @@ const SessionTable = () => {
                   </div>
                 </TableCell>
                 <TableCell className={`${tableRowClass} font-bold opacity-100`}>
-                  {getScore(session) || "N/A"}
+                  {`${session?.score}%` || "N/A"}
                 </TableCell>
                 <TableCell className={`${tableRowClass}`}>
                   <button className={getRiskLevelStyles(session.riskLevel)}>
