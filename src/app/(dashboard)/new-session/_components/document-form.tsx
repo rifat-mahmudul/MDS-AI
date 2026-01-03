@@ -55,7 +55,9 @@ interface UploadedFile {
 export function DocumentForm() {
   const [files, setFiles] = React.useState<UploadedFile[]>([]);
   const [showRawText, setShowRawText] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const dropZoneRef = React.useRef<HTMLDivElement>(null);
   const session = useSession();
   const token = session?.data?.user?.accessToken;
   const [id, setId] = React.useState("");
@@ -68,31 +70,96 @@ export function DocumentForm() {
     },
   });
 
-  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles: UploadedFile[] = [];
+  // Drag and drop event handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
 
-      Array.from(e.target.files).forEach((file) => {
-        if (file.size > MAX_FILE_SIZE) {
-          toast.error(`${file.name} is too large. Max size is 20MB`);
-          return;
-        }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-        if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
-          toast.error(`${file.name} has unsupported file type`);
-          return;
-        }
+    // Check if leaving the drop zone
+    if (
+      dropZoneRef.current &&
+      !dropZoneRef.current.contains(e.relatedTarget as Node)
+    ) {
+      setIsDragging(false);
+    }
+  };
 
-        newFiles.push({
-          id: Math.random().toString(36).substr(2, 9),
-          name: file.name,
-          size: formatBytes(file.size),
-          type: file.type,
-          file: file,
-        });
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(Array.from(e.dataTransfer.files));
+      e.dataTransfer.clearData();
+    }
+  };
+
+  const processFiles = (fileList: File[]) => {
+    const newFiles: UploadedFile[] = [];
+    let hasError = false;
+
+    fileList.forEach((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name} is too large. Max size is 20MB`);
+        hasError = true;
+        return;
+      }
+
+      if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
+        toast.error(`${file.name} has unsupported file type`);
+        hasError = true;
+        return;
+      }
+
+      // Check for duplicate files
+      const isDuplicate = files.some(
+        (existingFile) =>
+          existingFile.name === file.name &&
+          existingFile.size === formatBytes(file.size) &&
+          existingFile.type === file.type
+      );
+
+      if (isDuplicate) {
+        toast.error(`${file.name} is already added`);
+        hasError = true;
+        return;
+      }
+
+      newFiles.push({
+        id: Math.random().toString(36).substr(2, 9),
+        name: file.name,
+        size: formatBytes(file.size),
+        type: file.type,
+        file: file,
       });
+    });
 
+    if (newFiles.length > 0) {
       setFiles((prev) => [...prev, ...newFiles]);
+      toast.success(`Added ${newFiles.length} file(s)`);
+    } else if (!hasError && fileList.length > 0) {
+      toast.info("No valid files to add");
+    }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFiles(Array.from(e.target.files));
+      // Reset input to allow selecting same file again
+      e.target.value = "";
     }
   };
 
@@ -160,17 +227,46 @@ export function DocumentForm() {
           <div className="bg-white p-4 rounded-xl border border-gray-200/75">
             <div className="space-y-4">
               <div
-                className="relative group cursor-pointer"
+                ref={dropZoneRef}
+                className={cn(
+                  "relative group cursor-pointer transition-all duration-200",
+                  isDragging && "scale-[0.98]"
+                )}
                 onClick={() => fileInputRef.current?.click()}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
               >
-                <div className="border-2 border-dashed border-slate-300 rounded-xl bg-white p-12 transition-all duration-200 group-hover:border-slate-400 group-hover:bg-slate-50/50">
+                <div
+                  className={cn(
+                    "border-2 border-dashed rounded-xl bg-white p-12 transition-all duration-200",
+                    isDragging
+                      ? "border-blue-500 bg-blue-50/30 border-solid scale-[1.02]"
+                      : "border-slate-300 group-hover:border-slate-400 group-hover:bg-slate-50/50"
+                  )}
+                >
                   <div className="flex flex-col items-center justify-center space-y-4 text-center">
-                    <div className="text-slate-700">
+                    <div
+                      className={cn(
+                        "transition-colors duration-200",
+                        isDragging ? "text-blue-500" : "text-slate-700"
+                      )}
+                    >
                       <Upload className="w-8 h-8" strokeWidth={2.5} />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="text-xl font-semibold text-slate-800 tracking-tight">
-                        Drag & drop files here or click to browse
+                      <h3
+                        className={cn(
+                          "text-xl font-semibold tracking-tight transition-colors duration-200",
+                          isDragging
+                            ? "text-blue-600"
+                            : "text-slate-800 group-hover:text-slate-900"
+                        )}
+                      >
+                        {isDragging
+                          ? "Drop files here"
+                          : "Drag & drop files here or click to browse"}
                       </h3>
                       <p className="text-sm text-slate-400">
                         Files are processed securely and deleted after analysis.
@@ -179,13 +275,15 @@ export function DocumentForm() {
                         Supports : PDF, DOCX, TXT, JPG, PNG (Max 20 MB)
                       </p>
                     </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="mt-4 bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-6 rounded-lg"
-                    >
-                      Browse Files
-                    </Button>
+                    {!isDragging && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="mt-4 bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold px-6 rounded-lg"
+                      >
+                        Browse Files
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <input
