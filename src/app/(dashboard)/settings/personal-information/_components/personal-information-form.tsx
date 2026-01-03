@@ -26,6 +26,7 @@ const formSchema = z.object({
   lastName: z.string().min(2, {
     message: "Last Name must be at least 2 characters.",
   }),
+  professionalTitle: z.string().optional(),
   email: z.string().min(2, {
     message: "Email must be at least 2 characters.",
   }),
@@ -49,6 +50,7 @@ const PersonalInformationForm = () => {
     defaultValues: {
       firstName: "",
       lastName: "",
+      professionalTitle: "",
       email: "",
       phone: "",
       address: "",
@@ -87,7 +89,6 @@ const PersonalInformationForm = () => {
     },
   });
 
-  // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       await mutateAsync(values);
@@ -149,6 +150,25 @@ const PersonalInformationForm = () => {
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="professionalTitle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-base text-[#3B4759] leading-[120%] font-medium">
+                    Professional Title
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
+                      placeholder="San Francisco"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
