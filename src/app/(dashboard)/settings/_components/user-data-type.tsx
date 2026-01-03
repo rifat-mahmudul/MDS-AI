@@ -9,6 +9,7 @@ export interface UserProfile {
   _id: string;
   firstName: string;
   lastName: string;
+  professionTitle: string;
   email: string;
   password: string;
   role: "admin" | "user";

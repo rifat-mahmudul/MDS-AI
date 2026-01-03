@@ -48,8 +48,8 @@ const SettingSidebar = () => {
         </div>
         {/* user info  */}
         <div className='pt-6 pb-10'>
-          <h4 className="text-xl md:text-2xl font-semibold leading-[120%] text-primary text-center">{data?.data?.firstName}{data?.data?.lastName}</h4>
-          <p className='text-sm font-normal leading-[120%] text-[#68706A] text-center pt-1'>{data?.data?.role || ""}</p>
+          <h4 className="text-xl md:text-2xl font-semibold leading-[120%] text-primary text-center">{data?.data?.firstName} {data?.data?.lastName}</h4>
+          <p className='text-sm font-normal leading-[120%] text-[#68706A] text-center pt-1'>{data?.data?.professionTitle || ""}</p>
         </div>
         <div className='px-6'>
           <ul>
