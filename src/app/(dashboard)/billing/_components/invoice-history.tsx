@@ -108,10 +108,12 @@ const InvoiceHistory = () => {
           <CardContent className="p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Plan Usage</h2>
-              <span className="text-lg font-semibold text-[#1a2b3b]">65%</span>
+              <span className="text-lg font-semibold text-[#1a2b3b]">
+                {invoices?.length}
+              </span>
             </div>
             <div className="relative pt-1">
-              <Progress value={65} className="h-2.5 bg-slate-100" />
+              <Progress value={invoices?.length} className="h-2.5 bg-slate-100" />
             </div>
           </CardContent>
         </Card>
