@@ -16,6 +16,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import UpdateStatus from "./update-status";
+import InvoiceDetails, {
+  InvoiceDetails as InvoiceDetailsType,
+} from "./invoice-details";
+
 export interface Invoice {
   _id: string;
   invoiceId: string;
@@ -28,6 +32,10 @@ const InvoiceHistory = () => {
   const tableHeaderClass = "text-center text-white font-medium";
   const tableRowClass = "h-[50px] text-center opacity-70 font-medium";
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [selectedInvoice, setSelectedInvoice] =
+    useState<Invoice | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
+
   const session = useSession();
   const status = session?.status;
   const token = session?.data?.user?.accessToken;
@@ -54,6 +62,11 @@ const InvoiceHistory = () => {
     },
     enabled: !!token,
   });
+
+  const handleViewDetails = async (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setDetailsOpen(true);
+  };
 
   const SkeletonRow = () => (
     <TableRow>
@@ -173,7 +186,10 @@ const InvoiceHistory = () => {
                     <TableCell
                       className={`${tableRowClass} flex items-center justify-center gap-2`}
                     >
-                      <button className="p-1 hover:bg-gray-100 rounded">
+                      <button
+                        className="p-1 hover:bg-gray-100 rounded"
+                        onClick={() => handleViewDetails(item)}
+                      >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button className="p-1 hover:bg-gray-100 rounded">
@@ -206,6 +222,15 @@ const InvoiceHistory = () => {
           )}
         </div>
       </div>
+
+      {selectedInvoice && (
+        <InvoiceDetails
+          invoice={selectedInvoice as InvoiceDetailsType}
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          token={token as string}
+        />
+      )}
     </div>
   );
 };
