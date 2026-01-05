@@ -11,7 +11,10 @@ export interface UserProfile {
   lastName: string;
   professionTitle: string;
   email: string;
-  password: string;
+  phone: string;
+  streetAddress: string;
+  location: string;
+  postCode: string;
   role: "admin" | "user";
   profileImage: string;
   verified: boolean;
@@ -20,11 +23,11 @@ export interface UserProfile {
   position: string[];
   socialMedia: SocialMedia[];
   playingVideo: string[];
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
   __v: number;
   otp: string;
-  otpExpiry: string; // ISO date string
+  otpExpiry: string;
 }
 
 export interface SocialMedia {

@@ -31,7 +31,6 @@ const SettingSidebar = () => {
     enabled: !!token
   })
 
-  console.log(data)
 
   if (status === "loading" || isLoading) {
     return <SettingSidebarSkeleton />;
@@ -55,8 +54,8 @@ const SettingSidebar = () => {
           <ul>
             <li className="text-base font-normal text-[#5B6574] leading-[120%] "><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Name :</strong> {data?.data?.firstName || ""}{data?.data?.lastName || ""}</li>
             <li className="text-base font-normal text-[#5B6574] leading-[120%] py-3"><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Email :</strong> {data?.data?.email || ""}</li>
-            <li className="text-base font-normal text-[#5B6574] leading-[120%] "><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Phone :</strong> {data?.data?.email || ""}</li>
-            <li className="text-base font-normal text-[#5B6574] leading-[120%] py-3"><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Location :</strong> {data?.data?.email || ""}</li>
+            <li className="text-base font-normal text-[#5B6574] leading-[120%] "><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Phone :</strong> {data?.data?.phone || "N/A"}</li>
+            <li className="text-base font-normal text-[#5B6574] leading-[120%] py-3"><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Location :</strong> {data?.data?.location || "N/A"}</li>
             <li className="text-base font-normal text-[#5B6574] leading-[120%] "><strong className="text-base font-semibold leading-[120%] text-[#5B6574]">Member Since :</strong> 14 August, 2025</li>
           </ul>
         </div>

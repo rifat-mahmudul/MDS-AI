@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useEffect } from "react"; // Add this import
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,30 +15,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
+import { UserProfileApiResponse } from "../../_components/user-data-type";
 
+// Update form schema to match API response fields
 const formSchema = z.object({
-  firstName: z.string().min(2, {
-    message: "First Name must be at least 2 characters.",
-  }),
-  lastName: z.string().min(2, {
-    message: "Last Name must be at least 2 characters.",
-  }),
-  professionalTitle: z.string().optional(),
-  email: z.string().min(2, {
-    message: "Email must be at least 2 characters.",
-  }),
-  phone: z.string().min(2, {
-    message: "Phone Number must be at least 2 characters.",
-  }),
-  address: z.string().min(2, {
-    message: "Address must be at least 2 characters.",
-  }),
-  location: z.string(),
-  postalCode: z.string(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().optional(),
+  professionTitle: z.string().optional(),
+  phone: z.string().optional(),
+  streetAddress: z.string().optional(),
+  location: z.string().optional(),
+  postCode: z.string().optional(),
+  profileImage: z.string().optional(),
 });
 
 const PersonalInformationForm = () => {
@@ -45,19 +39,54 @@ const PersonalInformationForm = () => {
   const token = session?.data?.user?.accessToken;
   const queryClient = useQueryClient();
 
+  const { data, isLoading, isSuccess } = useQuery<UserProfileApiResponse>({
+    queryKey: ["user-data"],
+    queryFn: async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/profile`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return await res.json();
+    },
+    enabled: !!token,
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
-      professionalTitle: "",
       email: "",
+      professionTitle: "",
       phone: "",
-      address: "",
+      streetAddress: "",
       location: "",
-      postalCode: "",
+      postCode: "",
+      profileImage: "",
     },
   });
+
+  useEffect(() => {
+    if (isSuccess && data?.data) {
+      form.reset({
+        firstName: data?.data?.firstName || "",
+        lastName: data?.data?.lastName || "",
+        email: data?.data?.email || "",
+        professionTitle: data?.data?.professionTitle || "",
+        phone: data?.data?.phone || "",
+        streetAddress: data?.data?.streetAddress || "",
+        location: data?.data?.location || "",
+        postCode: data?.data?.postCode || "",
+        profileImage: data.data.profileImage || "",
+      });
+    }
+  }, [isSuccess, data, form]);
 
   const { mutateAsync, isPending } = useMutation({
     mutationKey: ["profile-update"],
@@ -96,6 +125,16 @@ const PersonalInformationForm = () => {
       console.log(`error from update profile :  ${error}`);
     }
   }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="h-full py-6 px-8 bg-white rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.12)] flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full py-6 px-8 bg-white rounded-[8px] shadow-[0_4px_8px_rgba(0,0,0,0.12)]">
       <div>
@@ -106,6 +145,7 @@ const PersonalInformationForm = () => {
           Manage your personal information and profile details.
         </p>
       </div>
+
       {/* form  */}
       <div className="pt-10">
         <Form {...form}>
@@ -122,8 +162,9 @@ const PersonalInformationForm = () => {
                     <FormControl>
                       <Input
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                        placeholder="Maria Jasmin"
+                        placeholder="Enter first name"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -141,8 +182,9 @@ const PersonalInformationForm = () => {
                     <FormControl>
                       <Input
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                        placeholder="Maria Jasmin"
+                        placeholder="Enter last name"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -150,9 +192,10 @@ const PersonalInformationForm = () => {
                 )}
               />
             </div>
+
             <FormField
               control={form.control}
-              name="professionalTitle"
+              name="professionTitle"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base text-[#3B4759] leading-[120%] font-medium">
@@ -161,14 +204,16 @@ const PersonalInformationForm = () => {
                   <FormControl>
                     <Input
                       className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                      placeholder="San Francisco"
+                      placeholder="Enter professional title"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -181,8 +226,11 @@ const PersonalInformationForm = () => {
                     <FormControl>
                       <Input
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                        placeholder="bessieedwards@gmail.com"
+                        placeholder="Enter email address"
                         {...field}
+                        value={field.value || ""}
+                        type="email"
+                        disabled
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -202,6 +250,7 @@ const PersonalInformationForm = () => {
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
                         placeholder="+1 (555) 123-4567"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -209,9 +258,10 @@ const PersonalInformationForm = () => {
                 )}
               />
             </div>
+
             <FormField
               control={form.control}
-              name="address"
+              name="streetAddress"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-base text-[#3B4759] leading-[120%] font-medium">
@@ -220,14 +270,16 @@ const PersonalInformationForm = () => {
                   <FormControl>
                     <Input
                       className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                      placeholder="San Francisco"
+                      placeholder="Enter street address"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage className="text-red-500" />
                 </FormItem>
               )}
             />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -240,8 +292,9 @@ const PersonalInformationForm = () => {
                     <FormControl>
                       <Input
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                        placeholder="Admin"
+                        placeholder="Enter location"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -250,7 +303,7 @@ const PersonalInformationForm = () => {
               />
               <FormField
                 control={form.control}
-                name="postalCode"
+                name="postCode"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="text-base text-[#3B4759] leading-[120%] font-medium">
@@ -259,8 +312,9 @@ const PersonalInformationForm = () => {
                     <FormControl>
                       <Input
                         className="h-[48px] w-full rounded-[4px] border-[#C0C3C1] p-3 placeholder:text-[#8E959F] text-[#3B4759] text-base ring-0 outline-none leading-[120%] font-normal"
-                        placeholder="Pricing Management, Badge Approvals, Blog Management"
+                        placeholder="Enter postal code"
                         {...field}
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -268,11 +322,29 @@ const PersonalInformationForm = () => {
                 )}
               />
             </div>
+
+            {/* Hidden field for profileImage (if needed) */}
+            <input type="hidden" {...form.register("profileImage")} />
+
             <div className="w-full flex items-center justify-end gap-6 pt-5">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => form.reset()}
+                onClick={() => {
+                  if (data?.data) {
+                    form.reset({
+                      firstName: data.data.firstName || "",
+                      lastName: data.data.lastName || "",
+                      email: data.data.email || "",
+                      professionTitle: data?.data?.professionTitle || "",
+                      phone: data?.data?.phone || "",
+                      streetAddress: data?.data?.streetAddress || "",
+                      location: data?.data?.location || "",
+                      postCode: data?.data?.postCode || "",
+                      profileImage: data.data.profileImage || "",
+                    });
+                  }
+                }}
                 className="h-[50px] text-sm text-[#E5102E] leading-[120%] font-medium py-4 px-6 rounded-[6px] border border-[#E5102E]"
               >
                 Discard Changes
@@ -288,7 +360,6 @@ const PersonalInformationForm = () => {
                     <span>
                       <Spinner />
                     </span>
-
                     <span>Save Changes</span>
                   </span>
                 ) : (

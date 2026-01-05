@@ -11,24 +11,22 @@ import {
 
 const faqs = [
   {
-    question: "How do I reset my password?",
+    question: "1. How do I reset my password?",
     answer:
-      "To reset your password, click on your profile icon in the sidebar, select 'Settings', and then navigate to the 'Security' tab. You will find an option to change your password there.",
+      "To reset your password, select 'Settings', and then navigate to the 'Security' tab. You will find an option to change your password there.",
   },
   {
-    question: "Where can I find patient archives?",
-    answer:
-      "To reset your password, click on your profile icon in the sidebar, select 'Settings', and then navigate to the 'Security' tab. You will find an option to change your password there.",
+    question: "2. Where can I find Report Archives?",
+    answer: "To find report archives, you have to select Report History.",
   },
   {
-    question: "What are the system requirements?",
+    question: "3. What are the system requirements?",
     answer:
-      "To reset your password, click on your profile icon in the sidebar, select 'Settings', and then navigate to the 'Security' tab. You will find an option to change your password there.",
+      "Our system supports uploading common file formats such as PDF and image files without any issues. Additionally, if you provide a clear and meaningful prompt or input, the system will process it correctly and return a valid, accurate response. No special hardware or advanced technical setup is required just a stable internet connection and a modern web browser.",
   },
   {
-    question: "4. How do I add a new patient record?",
-    answer:
-      "To reset your password, click on your profile icon in the sidebar, select 'Settings', and then navigate to the 'Security' tab. You will find an option to change your password there.",
+    question: "4. How do I add a new session?",
+    answer: "To add a new session, you have to select New Session.",
   },
 ];
 
@@ -41,8 +39,8 @@ const SupportComponent = () => {
         <h1 className="text-2xl font-bold text-primary my-3">Get in Touch</h1>
 
         <p className="opacity-50">
-          For general questions or support, please email us directly we
-          typically response within 24 hours.
+          For general questions or support, please email us directly. We
+          typically respond within 24 hours.
         </p>
 
         <div className="my-8 flex items-center gap-2 text-primary font-medium">
