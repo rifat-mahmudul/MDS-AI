@@ -20,7 +20,7 @@ const ProfilePicture = () => {
   
   // get api
   const { data } = useQuery<UserProfileApiResponse>({
-    queryKey: ["profile-img"],
+    queryKey: ["user-data"],
     queryFn: () =>
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/user/profile`, {
         method: "GET",
@@ -33,7 +33,7 @@ const ProfilePicture = () => {
 
   // update api
   const { mutate, isPending } = useMutation({
-    mutationKey: ["update-profile-image"],
+    mutationKey: ["user-data"],
     mutationFn: async (formData: FormData) => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/user/profile`,
@@ -51,9 +51,8 @@ const ProfilePicture = () => {
     onSuccess: (data) => {
       toast.success(data?.message || "Profile image updated successfully!");
       queryClient.invalidateQueries({
-        queryKey: ["profile-img"],
+        queryKey: ["user-data"],
       });
-      console.log("Response:", data);
     },
     onError: (error) => {
       toast.error("Upload failed");
