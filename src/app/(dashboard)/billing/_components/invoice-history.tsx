@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, Eye, Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import React, { useState } from "react";
 import { CreateInvoice } from "./create-invoice";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import UpdateStatus from "./update-status";
 import InvoiceDetails, {
   InvoiceDetails as InvoiceDetailsType,
 } from "./invoice-details";
+import DownloadInvoice from "./download-invoice";
 
 export interface Invoice {
   _id: string;
@@ -32,8 +33,7 @@ const InvoiceHistory = () => {
   const tableHeaderClass = "text-center text-white font-medium";
   const tableRowClass = "h-[50px] text-center opacity-70 font-medium";
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [selectedInvoice, setSelectedInvoice] =
-    useState<Invoice | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [detailsOpen, setDetailsOpen] = useState<boolean>(false);
 
   const session = useSession();
@@ -192,9 +192,7 @@ const InvoiceHistory = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Download className="h-4 w-4" />
-                      </button>
+                      <DownloadInvoice item={item} token={token as string} />
                     </TableCell>
                   </TableRow>
                 ))
